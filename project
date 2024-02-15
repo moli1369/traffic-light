@@ -1,0 +1,127 @@
+pip install opencv-python
+import cv2
+
+# تابعی برای گرفتن تصویر از دوربین
+def capture_image():
+    cap = cv2.VideoCapture(0) # شماره 0 برای دوربین اصلی استفاده می‌شود، اگر بیشتر از یک دوربین دارید شماره دوربین مورد نظر را قرار دهید
+    ret, frame = cap.read() # گرفتن تصویر
+    cap.release() # آزاد کردن دوربین
+    return frame
+
+# نمایش تصویر گرفته شده
+def show_image(image):
+    cv2.imshow('Captured Image', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+# گرفتن تصویر
+image = capture_image()
+
+# نمایش تصویر گرفته شده
+show_image(image)
+
+
+# تعداد حداکثر ماشین‌ها که اجازه می‌دهیم برای سبز شدن چراغ باشند
+MAX_CAR_THRESHOLD = 5
+
+def decide_traffic_light(image):
+    # در اینجا باید کدی برای تشخیص ماشین‌ها یا اشیاء موجود در تصویر بنویسید.
+    # این کد می‌تواند شامل استفاده از روش‌های پردازش تصویر و تشخیص شیء باشد.
+    # به عنوان یک مثال ساده، می‌توانید از تبدیل تصویر به تصویر سیاه و سفید و سپس تشخیص اجسام موجود استفاده کنید.
+
+    # در اینجا فرض می‌کنیم که تعداد ماشین‌ها در تصویر محاسبه شده است و به عنوان ورودی به این تابع داده شده است.
+    # در اینجا فقط یک مثال ساده ارائه شده است و باید این کد را براساس نیازهای واقعی تصحیح کنید.
+    num_cars = 3  # تعداد ماشین‌های موجود در تصویر
+
+    # تصمیم‌گیری بر اساس تعداد ماشین‌ها
+    if num_cars > MAX_CAR_THRESHOLD:
+        return "RED"
+    else:
+        return "GREEN"
+
+# گرفتن تصویر
+image = capture_image()
+
+# تصمیم‌گیری بر اساس تصویر
+light_color = decide_traffic_light(image)
+print("Traffic light color:", light_color)
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# وضعیت اولیه چراغ راهنمایی (مقدار پیش‌فرض)
+traffic_light_status = "RED"
+
+# روت برای دریافت وضعیت فعلی چراغ راهنمایی
+@app.route('/status', methods=['GET'])
+def get_traffic_light_status():
+    return jsonify({"status": traffic_light_status})
+
+# روت برای تنظیم وضعیت چراغ راهنمایی
+@app.route('/set_status', methods=['POST'])
+def set_traffic_light_status():
+    global traffic_light_status
+    new_status = request.json.get('status')
+    if new_status in ["RED", "GREEN"]:
+        traffic_light_status = new_status
+        return jsonify({"message": "Traffic light status updated successfully."})
+    else:
+        return jsonify({"error": "Invalid status provided."}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True)
+# خوب، برای ایجاد یک بسته کامل که شامل تمامی قسمت‌های پردازش تصویر، تصمیم‌گیری و ارتباط با چراغ راهنمایی است، شما می‌توانید از ساختار برنامه‌های پایتون و استفاده از فایل‌های __init__.py برای ایجاد یک بسته استفاده کنید.
+
+فرض کنید می‌خواهید بسته‌ی خود را به نام traffic_control بنامید. ساختار این بسته می‌تواند به شکل زیر باشد:
+
+traffic_control/
+│
+├── __init__.py
+├── camera.py
+├── decision.py
+└── traffic_light.py
+# حالا بیایید هر یک از فایل‌ها را پر کنیم:
+
+    camera.py: این فایل شامل توابع برای گرفتن تصویر از دوربین استفاده می‌شود.
+
+import cv2
+
+def capture_image():
+    cap = cv2.VideoCapture(0)
+    ret, frame = cap.read()
+    cap.release()
+    return frame
+#       decision.py: این فایل شامل توابع برای تصمیم‌گیری بر اساس تصویر گرفته شده است.
+def decide_traffic_light(image):
+    # اینجا کد تصمیم‌گیری بر اساس تصویر گرفته شده قرار می‌گیرد
+    # ...
+    return "GREEN"  # به طور موقت مقدار ثابتی برمی‌گردانیم
+
+# traffic_light.py: این فایل شامل کد برای ایجاد ارتباط با چراغ راهنمایی است.
+import requests
+import json
+
+def set_traffic_light_status(status):
+    url = "http://localhost:5000/set_status"
+    payload = {"status": status}
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+    return response.json()
+
+def get_traffic_light_status():
+    url = "http://localhost:5000/status"
+    response = requests.get(url)
+    return response.json()["status"]
+
+#     __init__.py: این فایل مسئول بارگذاری توابع و کلاس‌ها و ایجاد یک واسط کاربری برای بسته است.    
+from .camera import capture_image
+from .decision import decide_traffic_light
+from .traffic_light import set_traffic_light_status, get_traffic_light_status
+# حالا کافی است این فایل‌ها را در یک پوشه با نام traffic_control ذخیره کرده و آن را به یک بسته تبدیل کنید. برای این کار، می‌توانید از دستورات زیر در خط فرمان استفاده کنید:
+#code bash
+cd /path/to/traffic_control
+python setup.py sdist
+# این دستور یک فایل tar.gz را در دایرکتوری dist ایجاد می‌کند که شما می‌توانید از آن استفاده کنید یا آن را برای دیگران منتشر کنید.
+
+
