@@ -1,6 +1,7 @@
 import cv2
 
 # تابعی برای گرفتن تصویر از دوربین
+# Eine Funktion, um ein Bild von der Kamera aufzunehmen
 def capture_image():
     cap = cv2.VideoCapture(0) # شماره 0 برای دوربین اصلی استفاده می‌شود، اگر بیشتر از یک دوربین دارید شماره دوربین مورد نظر را قرار دهید
     ret, frame = cap.read() # گرفتن تصویر
@@ -8,13 +9,16 @@ def capture_image():
     return frame
 
 # نمایش تصویر گرفته شده
+# Erfasstes Bild anzeigen
 def show_image(image):
     cv2.imshow('Captured Image', image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 # گرفتن تصویر
+# ein Foto machen
 image = capture_image()
 
 # نمایش تصویر گرفته شده
+# Aufgenommenes Bild anzeigen
 show_image(image)
